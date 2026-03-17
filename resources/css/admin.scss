@@ -1,0 +1,85 @@
+.your-plugin-admin-wrapper{
+  margin: 0 -17px;
+  .full-height{
+    height: 100vh;
+    .el-header{
+      .header-content{
+        background: #fff;
+        display: block;
+        margin-bottom: 20px;
+        margin-left: -40px;
+        overflow: hidden;
+        padding-left: 20px;
+        position: relative;
+
+        li.el-menu-item{
+          color: #909399;
+          display: block;
+          font-size: 14px;
+          line-height: 100%;
+          padding: 20px 15px;
+          text-decoration: none;
+        }
+      }
+    }
+
+    .dashboard-container {
+      .el-select__input-wrapper {
+        .el-select__input {
+          width: 255px !important;
+          border: none;
+        }
+      }
+    
+      .el-input__inner {
+        border: none;
+      }
+
+      /* dashboard overview stats */
+      .overview-stats {
+        .stat-row {
+          margin-bottom: 1rem;
+        }
+        .stat-item {
+          background: #fafafa;
+          padding: 10px;
+          border-radius: 4px;
+          text-align: center;
+        }
+        .overview-actions {
+          text-align: right;
+          button {
+            margin-left: 10px;
+          }
+        }
+      }
+
+      .el-form-item--label-top .el-form-item__label{
+        font-weight: 700;
+        color: #333;
+      }
+
+      .el-card {
+        padding: 20px;
+      }
+
+      .upload-demo {
+        width: 100%;
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        text-align: center;
+        padding: 10px 0 40px 0;
+      }
+
+      .el-upload__tip {
+        font-size: 12px;
+        color: #666;
+        margin-top: 10px;
+      }
+
+      .el-pagination{
+        margin-top: 15px;
+      }
+    }
+  }
+}

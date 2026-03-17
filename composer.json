@@ -1,0 +1,17 @@
+{
+    "name": "search-tracker/russel",
+    "description": "Simple WP Plugin to manage campaign and generate Leads",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "SearchTracker\\Rus\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Russel Hussain",
+            "email": "md.russel.hussain@gmail.com"
+        }
+    ],
+    "require": {}
+}

@@ -1,0 +1,34 @@
+{
+  "name": "search-tracker-russel",
+  "version": "1.0.0",
+  "description": "This is a simple but awesome plugin",
+  "main": "resources/js/main.js",
+  "scripts": {
+    "dev": "mix",
+    "watch": "mix watch",
+    "watch-poll": "mix watch -- --watch-options-poll=1000",
+    "hot": "mix watch --hot",
+    "production": "mix --production"
+  },
+  "author": "Md. Russel Hussain",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.3",
+    "browser-sync": "^3.0.2",
+    "chart.js": "^4.4.3",
+    "element-plus": "^2.7.8",
+    "jquery": "^3.7.1",
+    "lodash": "^4.17.21",
+    "vue": "^3.4.35",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@vue/compiler-sfc": "^3.4.35",
+    "cross-env": "^7.0.3",
+    "laravel-mix": "^6.0.49",
+    "resolve-url-loader": "^5.0.0",
+    "sass": "^1.77.8",
+    "sass-loader": "^12.1.0",
+    "vue-loader": "^17.4.2"
+  }
+}
