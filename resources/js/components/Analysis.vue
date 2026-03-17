@@ -31,6 +31,9 @@
               </el-table-column>
             </el-table>
           </div>
+          <el-pagination @current-change="handlePageChange" @size-change="handleSizeChange"
+              :current-page="currentPage" :page-size="pageSize" :background="true" :total="totalItems"
+              layout="total, sizes, prev, pager, next" />
         </el-card>
       </div>
     </el-main>
@@ -61,6 +64,9 @@ export default {
     const { startLoading, stopLoading } = loader();
     const route = useRoute();
     const app_vars = window.wplms_cleanup_pro_app_vars;
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const totalItems = ref(10);
     const data = ref([]);
     const search = ref('');
     // Computed property for filtered jobs
@@ -71,25 +77,46 @@ export default {
         );
     });
 
-    const fetchStats = async () => {
+    const fetchSearchData = async () => {
       startLoading();
       try {
-        const response = await get('get-data');
+        const response = await get(`get-data?page=${currentPage.value}&per_page=${pageSize.value}&search=${search.value}`);
         data.value = response.data;
+        currentPage.value = response.current_page;
+        pageSize.value = response.per_page;
+        totalItems.value = response.total_items;
       } catch (err) {
         error(err.response?.data?.message || err.message);
       }
       stopLoading();
     };
 
+    const handlePageChange = (newPage) => {
+        currentPage.value = newPage;
+        fetchSearchData();
+    };
+
+    const handleSizeChange = (newPageSize) => {
+        pageSize.value = newPageSize;
+        if (pageSize.value > totalItems.value) {
+            currentPage.value = 1;
+        }
+        fetchSearchData();
+    };
+
     onMounted(() => {
-      fetchStats();
+      fetchSearchData();
     });
 
     return {
       search,
+      currentPage,
+      pageSize,
+      totalItems,
       data,
       filteredData,
+      handlePageChange,
+      handleSizeChange,
     };
   },
 };

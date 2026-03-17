@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name:       Search Tracker
- * Description:       A simple plugin to clean up and optimize your WPLMS installation by removing unnecessary data and files.
+ * Description:       A simple plugin to track search queries.
  * Version:           1.0.0
  * Requires at least: 5.2
  * Requires PHP:      7.4
