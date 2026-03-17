@@ -1,5 +1,5 @@
 <template>
-  <div class="your-plugin-admin-wrapper">
+  <div class="search-tracker-admin-wrapper">
     <router-view></router-view>
   </div>
 </template>

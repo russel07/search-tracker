@@ -23,14 +23,6 @@ class ActivationHandler
 
         // Activate the plugin.
         $this->activate();
-
-        if (! wp_next_scheduled('your_custom_plugin_hourly_tasks')) {
-            wp_schedule_event(time(), 'hourly', 'your_custom_plugin_hourly_tasks');
-        }
-
-        if (! wp_next_scheduled('your_custom_plugin_daily_tasks')) {
-            wp_schedule_event(time(), 'daily', 'your_custom_plugin_daily_tasks');
-        }
     }
 
     /**
@@ -43,7 +35,7 @@ class ActivationHandler
         $version = get_option('your_custom_plugin_plugin_version');
 
         // Check if the plugin version option doesn't exist and set it.
-        if (!$version) {
+        if ( ! $version ) {
             update_option('your_custom_plugin_plugin_version', SEARCH_TRACKER_VERSION);
         }
     }

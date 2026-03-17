@@ -1,7 +1,6 @@
 <?php
 
 use SearchTracker\Rus\Hooks\Handler\ActionHooksHandler;
-use SearchTracker\Rus\Hooks\Handler\CleanupHandler;
 
 
 //Hooks to check mail need to send or not

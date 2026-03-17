@@ -3,62 +3,33 @@
     <el-main class="main-center">
       <Header />
       <div class="dashboard-container">
-        <h1>Analysis</h1>
         <el-card>
           <template #header>
-            <div class="card-header">
-              <span>Current Overview</span>
+            <div class="card-header with-search">
+              <h2>All Search terms</h2>
+              <el-input
+                  v-model="search"
+                  placeholder="Search terms..."
+                  style="width: 300px;"
+                  clearable
+              >
+                  <template #prefix>
+                      <el-icon><Search /></el-icon>
+                  </template>
+              </el-input>
             </div>
           </template>
           <div class="overview-stats">
-            <el-row :gutter="20" class="stat-row">
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Courses:</strong> {{ stats.total_courses || 0 }}
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Units:</strong> {{ stats.total_units || 0 }}
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Quizzes:</strong> {{ stats.total_quizzes || 0 }}
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Questions:</strong> {{ stats.total_questions || 0 }}
-                </div>
-              </el-col>
-            </el-row>
-            <el-row :gutter="20" class="stat-row" style="margin-top:1rem;">
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Media Files:</strong> {{ stats.total_media || 0 }}
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>DB Size:</strong> {{ stats.db_size || '–' }}
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Upload Size:</strong> {{ stats.upload_size || '–' }}
-                </div>
-              </el-col>
-              <el-col :span="6">
-                <div class="stat-item">
-                  <strong>Unused Data:</strong> {{ stats.potential_cleanup || '–' }}
-                </div>
-              </el-col>
-            </el-row>
-            <div class="overview-actions" style="margin-top:1.5rem;">
-              <el-button type="primary" @click="onRunScan">Run Full Scan</el-button>
-              <el-button @click="onViewReport">View Last Report</el-button>
-            </div>
+            <el-table :data="filteredData" style="width: 100%">
+              <el-table-column prop="search_term" label="Search Term"/>
+              <el-table-column prop="search_course" label="Course" />
+              <el-table-column prop="ip_address" label="IP Address" />
+              <el-table-column prop="created_at" label="Last Searched At">
+                <template #default="{ row }">
+                  {{ new Date(row.created_at).toLocaleString() }}
+                </template>
+              </el-table-column>
+            </el-table>
           </div>
         </el-card>
       </div>
@@ -90,39 +61,21 @@ export default {
     const { startLoading, stopLoading } = loader();
     const route = useRoute();
     const app_vars = window.wplms_cleanup_pro_app_vars;
-    const stats = ref({});
+    const data = ref([]);
+    const search = ref('');
+    // Computed property for filtered jobs
+    const filteredData = computed(() => {
+        if (! search.value ) return data.value;
+        return data.value.filter(term => 
+            term.search_terms.toLowerCase().includes(search.value.toLowerCase())
+        );
+    });
 
     const fetchStats = async () => {
       startLoading();
       try {
-        const response = await get('dashboard-overview');
-        stats.value = response;
-      } catch (err) {
-        error(err.response?.data?.message || err.message);
-      }
-      stopLoading();
-    };
-
-    const onRunScan = async () => {
-      startLoading();
-      try {
-        const response = await get('run-full-scan');
-        stats.value = response.stats || stats.value;
-        AlertMessage().success('Full scan completed');
-      } catch (err) {
-        error(err.response?.data?.message || err.message);
-      }
-      stopLoading();
-    };
-
-    const onViewReport = async () => {
-      startLoading();
-      try {
-        const response = await get('last-report');
-        if (response.report) {
-          stats.value = response.report;
-          AlertMessage().info('Loaded last report');
-        }
+        const response = await get('get-data');
+        data.value = response.data;
       } catch (err) {
         error(err.response?.data?.message || err.message);
       }
@@ -134,10 +87,22 @@ export default {
     });
 
     return {
-      stats,
-      onRunScan,
-      onViewReport,
+      search,
+      data,
+      filteredData,
     };
   },
 };
 </script>
+
+<style scoped>
+.dashboard-container {
+  padding: 0 20px;
+}
+
+.with-search {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>

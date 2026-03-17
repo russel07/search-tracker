@@ -18,7 +18,7 @@ class ActionHooksHandler
 
             $search_term = get_search_query();
 
-            if (!empty($search_term)) {
+            if ( ! empty( $search_term ) ) {
                 $wpdb->insert(
                     $wpdb->prefix . 'search_tracker_logs',
                     [

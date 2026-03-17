@@ -72,7 +72,7 @@ class Application
     public function load_admin_assets()
     {
         // Enqueue styles admin area
-        wp_enqueue_style( SEARCH_TRACKER_ASSET_ID.'-style', SEARCH_TRACKER_URL . 'assets/css/gift_card_admin.css' );
+        wp_enqueue_style( SEARCH_TRACKER_ASSET_ID.'-style', SEARCH_TRACKER_URL . 'assets/css/search_tracker.css' );
 
         // Enqueue JavaScript for admin
         wp_enqueue_script( SEARCH_TRACKER_ASSET_ID, SEARCH_TRACKER_URL . 'assets/js/admin.js', array('jquery', 'moment'), '1.0.0', true);
