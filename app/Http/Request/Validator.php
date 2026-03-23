@@ -25,7 +25,6 @@ class Validator
     {
         $this->data     = $data;
         $this->messages = $messages;
-
         $this->formatValidatorData($rules);
     }
 
@@ -38,7 +37,6 @@ class Validator
     {
         foreach ($this->rules as $field => $ruleStr) {
             $rulesArr = explode('|', $ruleStr);
-
             foreach ($rulesArr as $rule) {
                 if (method_exists($this, $rule)) {
                     $this->{$rule}($field);
@@ -56,7 +54,7 @@ class Validator
      */
     private function required($field)
     {
-        if (!isset($this->data[$field]) || empty($this->data[$field])) {
+        if ( ! isset($this->data[$field]) || empty($this->data[$field])) {
             $this->errors[$field] = $this->getMessage("$field.required", "$field is required");
         }
     }

@@ -31,4 +31,22 @@ class AdminController extends BaseController
             'per_page' => $limit
         ]);
     }
+
+    public function deleteData(\WP_REST_Request $request)
+    {
+        // Verify user capabilities.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return $this->response( 'Permission denied', 403 );
+		}
+
+        $ids = $request->get_param('ids');
+        foreach ($ids as $id) {
+        $searchTracker = SearchTracker::getInstance();
+            $searchTracker->destroy($id);
+        }
+
+        return $this->response([
+            'message' => 'Selected search terms deleted successfully.'
+        ]);
+    }
 }
