@@ -1,6 +1,6 @@
 {
   "name": "search-tracker-russel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This is a simple but awesome plugin",
   "main": "resources/js/main.js",
   "scripts": {

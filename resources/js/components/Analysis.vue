@@ -25,20 +25,32 @@
             >
               Export All
             </el-button>
-            <el-button
+            <el-popconfirm
               v-if="selectedRows.length"
-              type="danger"
-              @click="deleteSelected"
+              title="Are you sure you want to delete selected search terms?"
+              @confirm="deleteSelected"
+              confirm-button-text="Yes"
+              cancel-button-text="No"
+              :icon="WarningFilled"
+              icon-color="red"
             >
-              Delete Selected
-            </el-button>
-            <el-button
+              <template #reference>
+                <el-button type="danger">Delete Selected</el-button>
+              </template>
+            </el-popconfirm>
+            <el-popconfirm
               v-else
-              type="danger"
-              @click="deleteAll"
+              title="Are you sure you want to delete all search terms?"
+              @confirm="deleteAll"
+              confirm-button-text="Yes"
+              cancel-button-text="No"
+              :icon="WarningFilled"
+              icon-color="red"
             >
-              Delete All
-            </el-button>
+              <template #reference>
+                <el-button type="danger">Delete All</el-button>
+              </template>
+            </el-popconfirm>
             <div class="date-range-wrap">
               <span class="date-range-label">Date Range</span>
               <el-date-picker
@@ -56,6 +68,7 @@
               placeholder="Search terms..."
               style="width: 300px;"
               clearable
+              @change="applyFilters"
             >
               <template #prefix>
                 <el-icon><Search /></el-icon>
@@ -65,7 +78,7 @@
 
           <div class="overview-stats">
             <el-table
-              :data="filteredData"
+              :data="data"
               style="width: 100%"
               @selection-change="handleSelectionChange"
             >
@@ -104,7 +117,7 @@
 </template>
 
 <script>
-import { onMounted, ref, computed, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useAppHelper } from '../Composable/appHelper';
@@ -112,11 +125,11 @@ import AlertMessage from "../Composable/AlertMessage";
 import { loader } from '../Composable/Loader';
 import Footer from "./Footer.vue";
 import Header from "./Header";
-import { Search } from '@element-plus/icons-vue';
+import { Search, WarningFilled } from '@element-plus/icons-vue';
 
 export default {
   name: 'Analysis',
-  components: { Header, Footer, Search },
+  components: { Header, Footer, Search, WarningFilled },
   setup() {
     const { get, post } = useAppHelper(); // Add post for delete
     const { error, success } = AlertMessage();
@@ -133,32 +146,17 @@ export default {
 
     const selectedRows = ref([]); // track selected rows
 
-    const filteredData = computed(() => {
-      let rows = data.value;
-
-      if (search.value) {
-        rows = rows.filter(term =>
-          term.search_term.toLowerCase().includes(search.value.toLowerCase())
-        );
-      }
-
-      if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-        const start = new Date(dateRange.value[0]);
-        const end = new Date(dateRange.value[1]);
-        end.setHours(23, 59, 59, 999);
-        rows = rows.filter(term => {
-          const d = new Date(term.created_at);
-          return d >= start && d <= end;
-        });
-      }
-
-      return rows;
-    });
-
     const fetchSearchData = async () => {
       startLoading();
       try {
-        const response = await get(`get-data?page=${currentPage.value}&per_page=${pageSize.value}&search=${search.value}`);
+        let endpoint = `get-data?page=${currentPage.value}&per_page=${pageSize.value}&search=${encodeURIComponent(search.value || '')}`;
+        if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
+          const from = formatLocalDate(dateRange.value[0]);
+          const to = formatLocalDate(dateRange.value[1]);
+          endpoint += `&date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`;
+        }
+
+        const response = await get(endpoint);
         data.value = response.data;
         currentPage.value = response.current_page;
         pageSize.value = response.per_page;
@@ -238,6 +236,56 @@ export default {
       return `${year}-${month}-${day}`;
     };
 
+    const parseDateFromQuery = (value) => {
+      if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return null;
+      }
+
+      const parsed = new Date(`${value}T00:00:00`);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const applyFilters = () => {
+      const nextQuery = {
+        ...route.query,
+        page: '1',
+        per_page: String(pageSize.value),
+      };
+
+      if (search.value) {
+        nextQuery.search = search.value;
+      } else {
+        delete nextQuery.search;
+      }
+
+      if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
+        nextQuery.date_from = formatLocalDate(dateRange.value[0]);
+        nextQuery.date_to = formatLocalDate(dateRange.value[1]);
+      } else {
+        delete nextQuery.date_from;
+        delete nextQuery.date_to;
+      }
+
+      const currentQuery = {
+        ...route.query,
+        page: String(route.query.page || '1'),
+        per_page: String(route.query.per_page || pageSize.value),
+      };
+
+      const currentSerialized = JSON.stringify(Object.keys(currentQuery).sort().reduce((acc, key) => {
+        acc[key] = String(currentQuery[key]);
+        return acc;
+      }, {}));
+      const nextSerialized = JSON.stringify(Object.keys(nextQuery).sort().reduce((acc, key) => {
+        acc[key] = String(nextQuery[key]);
+        return acc;
+      }, {}));
+
+      if (currentSerialized !== nextSerialized) {
+        router.push({ query: nextQuery });
+      }
+    };
+
     const exportAll = async () => {
       try {
         startLoading();
@@ -273,6 +321,31 @@ export default {
       stopLoading();
     };
 
+    const deleteAll = async () => {
+      try {
+        startLoading();
+        let formattedDateRange = null;
+        if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
+          formattedDateRange = [
+            formatLocalDate(dateRange.value[0]),
+            formatLocalDate(dateRange.value[1]),
+          ];
+        }
+
+        const response = await post('delete-search-terms-all', {
+          search: search.value,
+          date_range: formattedDateRange,
+        });
+
+        selectedRows.value = [];
+        success(response?.message || 'Search terms deleted successfully!');
+        await fetchSearchData();
+      } catch (err) {
+        error(err.response?.data?.message || err.message);
+      }
+      stopLoading();
+    };
+
     const handlePageChange = (newPage) => {
       router.push({
         query: {
@@ -301,9 +374,22 @@ export default {
 
         currentPage.value = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
         pageSize.value = Number.isFinite(parsedPerPage) && parsedPerPage > 0 ? parsedPerPage : 10;
+        search.value = typeof query.search === 'string' ? query.search : '';
+
+        const parsedDateFrom = parseDateFromQuery(query.date_from);
+        const parsedDateTo = parseDateFromQuery(query.date_to);
+        dateRange.value = parsedDateFrom && parsedDateTo ? [parsedDateFrom, parsedDateTo] : null;
+
         fetchSearchData();
       },
       { immediate: true }
+    );
+
+    watch(
+      dateRange,
+      () => {
+        applyFilters();
+      }
     );
 
     onMounted(() => {
@@ -319,10 +405,10 @@ export default {
     });
 
     return {
-      search, dateRange, currentPage, pageSize, totalItems, data, filteredData,
+      search, dateRange, currentPage, pageSize, totalItems, data,
       handlePageChange, handleSizeChange,
-      selectedRows, handleSelectionChange, deleteSelected,
-      exportSelected, exportAll
+      selectedRows, handleSelectionChange, deleteSelected, deleteAll,
+      exportSelected, exportAll, applyFilters
     };
   },
 };

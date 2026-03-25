@@ -31,4 +31,29 @@ class ActionHooksHandler
             }
         }
     }
+
+    public static function get_search_terms_and_courses()
+    {
+        if ( is_singular('course') ) {
+            $search_term = isset($_GET['sq']) ? sanitize_text_field($_GET['sq']) : '';
+
+            $post = get_queried_object();
+            $course_slug = $post->post_name ?? '';
+
+            if( ! empty($search_term) && ! empty($course_slug) ) {
+                global $wpdb;
+
+                $ok = $wpdb->insert(
+                    $wpdb->prefix . 'search_tracker_logs',
+                    [
+                        'search_term'   => $search_term,
+                        'search_course' => $course_slug,
+                        'user_id'       => get_current_user_id(),
+                        'ip_address'    => $_SERVER['REMOTE_ADDR'],
+                        'created_at'    => current_time('mysql')
+                    ]
+                );
+            }
+        }
+    }
 }

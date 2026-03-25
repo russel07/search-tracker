@@ -75,7 +75,7 @@ class Application
         wp_enqueue_style( SEARCH_TRACKER_ASSET_ID.'-style', SEARCH_TRACKER_URL . 'assets/css/search_tracker.css' );
 
         // Enqueue JavaScript for admin
-        wp_enqueue_script( SEARCH_TRACKER_ASSET_ID, SEARCH_TRACKER_URL . 'assets/js/admin.js', array('jquery', 'moment'), '1.0.0', true);
+        wp_enqueue_script( SEARCH_TRACKER_ASSET_ID, SEARCH_TRACKER_URL . 'assets/js/admin.js', array('jquery', 'moment'), SEARCH_TRACKER_VERSION, true);
         wp_localize_script( SEARCH_TRACKER_ASSET_ID, SEARCH_TRACKER_ASSET_VARS. '_app_vars', $this->e_gift_card_app_vars());
     }
 }

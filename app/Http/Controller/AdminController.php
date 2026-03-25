@@ -21,8 +21,9 @@ class AdminController extends BaseController
         $offset = ($page - 1) * $limit;
 
         $searchTracker = SearchTracker::getInstance();
-        $total_items = count($searchTracker::all(null, null, ''));
-        $searchTrackerData = $searchTracker::all($limit, $offset, '');
+        $condition = $this->buildFilterCondition($request);
+        $total_items = count($searchTracker::all(null, null, $condition));
+        $searchTrackerData = $searchTracker::all($limit, $offset, $condition);
 
         return $this->response([
             'total_items' => $total_items,
@@ -50,6 +51,31 @@ class AdminController extends BaseController
         ]);
     }
 
+    public function deleteAllData(\WP_REST_Request $request)
+    {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return $this->response( 'Permission denied', 403 );
+        }
+
+        $searchTracker = SearchTracker::getInstance();
+        $condition = $this->buildFilterCondition($request);
+        $rows = (array) $searchTracker::all(null, 0, $condition);
+
+        $deleted = 0;
+        foreach ($rows as $row) {
+            $item = is_object($row) ? get_object_vars($row) : (array) $row;
+            $id = isset($item['id']) ? absint($item['id']) : 0;
+            if ($id > 0 && $searchTracker->destroy($id) !== false) {
+                $deleted++;
+            }
+        }
+
+        return $this->response([
+            'message' => 'Search terms deleted successfully.',
+            'deleted_count' => $deleted
+        ]);
+    }
+
     public function exportData(\WP_REST_Request $request)
     {
         if ( ! current_user_can( 'manage_options' ) ) {
@@ -57,7 +83,7 @@ class AdminController extends BaseController
         }
 
         $searchTracker = SearchTracker::getInstance();
-        $condition = $this->buildExportCondition($request);
+        $condition = $this->buildFilterCondition($request);
         $data = $searchTracker::all(null, 0, $condition);
 
         $csvWriter = new \SearchTracker\Rus\Services\CsvWriter();
@@ -87,7 +113,7 @@ class AdminController extends BaseController
         $csvWriter->output('selected_search_terms.csv');
     }
 
-    protected function buildExportCondition(\WP_REST_Request $request)
+    protected function buildFilterCondition(\WP_REST_Request $request)
     {
         global $wpdb;
         $conditions = [];
@@ -101,19 +127,38 @@ class AdminController extends BaseController
 
         $dateRange = $request->get_param('date_range');
         if (is_array($dateRange) && count($dateRange) === 2 && !empty($dateRange[0]) && !empty($dateRange[1])) {
-            // Parse date strings in YYYY-MM-DD format
             $startDate = sanitize_text_field($dateRange[0]);
             $endDate = sanitize_text_field($dateRange[1]);
+            $dateCondition = $this->buildDateRangeCondition($startDate, $endDate);
+            if (!empty($dateCondition)) {
+                $conditions[] = $dateCondition;
+            }
+        }
 
-            // Validate date format
-            if ($this->isValidDate($startDate) && $this->isValidDate($endDate)) {
-                $startDateTime = $startDate . ' 00:00:00';
-                $endDateTime = $endDate . ' 23:59:59';
-                $conditions[] = "created_at >= '" . $startDateTime . "' AND created_at <= '" . $endDateTime . "'";
+        $dateFrom = sanitize_text_field((string) $request->get_param('date_from'));
+        $dateTo = sanitize_text_field((string) $request->get_param('date_to'));
+        if (!empty($dateFrom) && !empty($dateTo)) {
+            $dateCondition = $this->buildDateRangeCondition($dateFrom, $dateTo);
+            if (!empty($dateCondition)) {
+                $conditions[] = $dateCondition;
             }
         }
 
         return !empty($conditions) ? implode(' AND ', $conditions) : '';
+    }
+
+    protected function buildDateRangeCondition($startDate, $endDate)
+    {
+        global $wpdb;
+
+        if (!$this->isValidDate($startDate) || !$this->isValidDate($endDate)) {
+            return '';
+        }
+
+        $startDateTime = $startDate . ' 00:00:00';
+        $endDateTime = $endDate . ' 23:59:59';
+
+        return $wpdb->prepare('created_at >= %s AND created_at <= %s', $startDateTime, $endDateTime);
     }
 
     protected function isValidDate($date)
