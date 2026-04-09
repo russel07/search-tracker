@@ -3,13 +3,34 @@
     <el-main class="main-center">
       <Header />
       <div class="dashboard-container">
-        <h1>General Settings</h1>
         <el-card>
           <template #header>
             <div class="card-header">
-              <span>General Settings Item</span>
+              <h2>Search Filter Settings</h2>
             </div>
           </template>
+
+          <el-form label-position="top" class="settings-form">
+            <el-form-item label="Filter IPs (comma separated)">
+              <el-input
+                v-model="filterIps"
+                type="textarea"
+                :rows="4"
+                placeholder="Example: 127.0.0.1, 192.168.1.20"
+              />
+            </el-form-item>
+
+            <el-form-item label="Filter Words (comma separated)">
+              <el-input
+                v-model="filterWords"
+                type="textarea"
+                :rows="4"
+                placeholder="Example: free, test, sample"
+              />
+            </el-form-item>
+
+            <el-button type="primary" @click="saveSettings">Save Settings</el-button>
+          </el-form>
         </el-card>
       </div>
     </el-main>
@@ -26,6 +47,7 @@ import AlertMessage from "../Composable/AlertMessage";
 import { loader } from '../Composable/Loader';
 import Footer from "./Footer.vue";
 import Header from "./Header";
+
 export default {
   name: "Settings",
   components: {
@@ -36,18 +58,34 @@ export default {
     const { get, post } = useAppHelper();
     const { success, error } = AlertMessage();
     const { startLoading, stopLoading } = loader();
-    const app_vars = window.wplms_cleanup_pro_app_vars;
+    const filterIps = ref('');
+    const filterWords = ref('');
 
     const fetchSettings = async () => {
       startLoading();
       try {
-        const response = await get("admin-settings");
-
-        if (response) {
-          wp_pages.value = response.wp_pages;
-        }
+        const response = await get("settings");
+        filterIps.value = response?.filter_ips || '';
+        filterWords.value = response?.filter_words || '';
       } catch ( err ) {
-        error('Error fetching settings:'+ err.response?.data.message);
+        error(err.response?.data?.message || err.message);
+      }
+      stopLoading();
+    };
+
+    const saveSettings = async () => {
+      startLoading();
+      try {
+        const response = await post('settings', {
+          filter_ips: filterIps.value,
+          filter_words: filterWords.value,
+        });
+
+        filterIps.value = response?.filter_ips || '';
+        filterWords.value = response?.filter_words || '';
+        success(response?.message || 'Settings saved successfully.');
+      } catch (err) {
+        error(err.response?.data?.message || err.message);
       }
       stopLoading();
     };
@@ -57,23 +95,28 @@ export default {
     });
 
     return {
-      app_vars,
+      filterIps,
+      filterWords,
       fetchSettings,
+      saveSettings,
     };
   },
 };
 </script>
 <style scoped>
 .dashboard-container {
-  padding: 20px;
-  max-width: 50%;
+  padding: 0 20px;
+}
+
+.settings-form {
+  max-width: 760px;
 }
 
 .full-height {
   min-height: 100vh;
 }
 
-.el-col {
-  padding: 10px;
+.card-header h2 {
+  margin: 0;
 }
 </style>

@@ -3,7 +3,8 @@
     <div class="header-content">
       <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect"
         :router="true">
-        <el-menu-item index="analysis" :to="{ path: '/' }">Analysis</el-menu-item>
+        <el-menu-item index="settings" :to="{ path: '/settings' }">Settings</el-menu-item>
+        <el-menu-item index="analysis" :to="{ path: '/analysis' }">Analysis</el-menu-item>
       </el-menu>
       <div class="h-6" />
     </div>
@@ -19,14 +20,16 @@ export default {
   setup() {
     const route = useRoute(); // Get the current route
     const router = useRouter();
-    const activeIndex = ref('/analysis');
+    const activeIndex = ref('settings');
 
     // Set the active menu item based on the current route path
     const setActiveMenu = (path) => {
-      if (path.includes('/analysis')) {
+      if (path.includes('/settings')) {
+        activeIndex.value = 'settings';
+      } else if (path.includes('/analysis')) {
         activeIndex.value = 'analysis';
       }else {
-        activeIndex.value = 'analysis';
+        activeIndex.value = 'settings';
       }
     };
 

@@ -2,11 +2,15 @@
 
 namespace SearchTracker\Rus\Http\Controller;
 
+use SearchTracker\Rus\Http\Model\FilterMeta;
 use SearchTracker\Rus\Http\Request\ValidatorHandler;
 use SearchTracker\Rus\Http\Model\SearchTracker;
 
 class AdminController extends BaseController
 {
+    const META_FILTER_IP = 'FILTER_IP';
+    const META_FILTER_WORD = 'FILTER_WORD';
+
     public function index(\WP_REST_Request $request)
     {
         $page   = intval(sanitize_text_field($request->get_param('page')));
@@ -30,6 +34,55 @@ class AdminController extends BaseController
             'data' => $searchTrackerData,
             'current_page' => $page,
             'per_page' => $limit
+        ]);
+    }
+
+    public function getSettings(\WP_REST_Request $request)
+    {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return $this->response( 'Permission denied', 403 );
+        }
+
+        $filterMeta = FilterMeta::getInstance();
+
+        return $this->response([
+            'filter_ips' => $filterMeta->getMetaValue(self::META_FILTER_IP, ''),
+            'filter_words' => $filterMeta->getMetaValue(self::META_FILTER_WORD, ''),
+        ]);
+    }
+
+    public function saveSettings(\WP_REST_Request $request)
+    {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return $this->response( 'Permission denied', 403 );
+        }
+
+        $rawIps = (string) $request->get_param('filter_ips');
+        $rawWords = (string) $request->get_param('filter_words');
+
+        $ipValues = $this->normalizeCommaSeparatedValues($rawIps);
+        $wordValues = $this->normalizeCommaSeparatedValues($rawWords);
+
+        $invalidIps = $this->findInvalidIps($ipValues);
+        if (!empty($invalidIps)) {
+            return $this->response([
+                'message' => 'Invalid IP address(es): ' . implode(', ', $invalidIps)
+            ], 422);
+        }
+
+        $safeWords = array_map('sanitize_text_field', $wordValues);
+        $safeWords = array_values(array_filter($safeWords, function ($item) {
+            return $item !== '';
+        }));
+
+        $filterMeta = FilterMeta::getInstance();
+        $filterMeta->setMetaValue(self::META_FILTER_IP, implode(', ', $ipValues));
+        $filterMeta->setMetaValue(self::META_FILTER_WORD, implode(', ', $safeWords));
+
+        return $this->response([
+            'message' => 'Settings saved successfully.',
+            'filter_ips' => implode(', ', $ipValues),
+            'filter_words' => implode(', ', $safeWords),
         ]);
     }
 
@@ -187,5 +240,37 @@ class AdminController extends BaseController
         }
 
         return $rows;
+    }
+
+    protected function normalizeCommaSeparatedValues($value)
+    {
+        if (!is_string($value) || $value === '') {
+            return [];
+        }
+
+        $parts = explode(',', $value);
+        $normalized = [];
+
+        foreach ($parts as $part) {
+            $item = trim(wp_strip_all_tags($part));
+            if ($item !== '') {
+                $normalized[] = $item;
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    protected function findInvalidIps($ips)
+    {
+        $invalid = [];
+
+        foreach ((array) $ips as $ip) {
+            if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+                $invalid[] = $ip;
+            }
+        }
+
+        return $invalid;
     }
 }
