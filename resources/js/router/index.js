@@ -5,7 +5,7 @@ import Settings from '../components/Settings.vue';
 const routes = [
     {
         path: '/',
-        redirect: '/settings'
+        redirect: '/analytics'
     },
     {
         path: '/settings',
