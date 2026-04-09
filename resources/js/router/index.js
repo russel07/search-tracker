@@ -1,5 +1,5 @@
 import { createWebHashHistory, createRouter } from "vue-router";
-import Analysis from '../components/Analysis.vue';
+import Analytics from '../components/Analytics.vue';
 import Settings from '../components/Settings.vue';
 
 const routes = [
@@ -13,9 +13,9 @@ const routes = [
         component: Settings
     },
     {
-        path: '/analysis',
-        name: 'Analysis',
-        component: Analysis
+        path: '/analytics',
+        name: 'Analytics',
+        component: Analytics
     },
 ];
 

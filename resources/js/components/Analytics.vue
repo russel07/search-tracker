@@ -128,7 +128,7 @@ import Header from "./Header";
 import { Search, WarningFilled } from '@element-plus/icons-vue';
 
 export default {
-  name: 'Analysis',
+  name: 'Analytics',
   components: { Header, Footer, Search, WarningFilled },
   setup() {
     const { get, post } = useAppHelper(); // Add post for delete

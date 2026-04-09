@@ -39,6 +39,6 @@ class Bootstrap
     public static function deactivate_me()
     {
         // Remove custom user roles on plugin deactivation.
-        remove_role('wplms_cleanup_pro_manager');
+        remove_role('search_tracker_manager');
     }
 }

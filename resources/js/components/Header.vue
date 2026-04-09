@@ -3,8 +3,12 @@
     <div class="header-content">
       <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect"
         :router="true">
-        <el-menu-item index="settings" :to="{ path: '/settings' }">Settings</el-menu-item>
-        <el-menu-item index="analysis" :to="{ path: '/analysis' }">Analysis</el-menu-item>
+        <el-menu-item index="analytics" :to="{ path: '/analytics' }">
+          <el-icon><DataAnalysis /></el-icon>Analytics
+        </el-menu-item>
+        <el-menu-item index="settings" :to="{ path: '/settings' }">
+          <el-icon><Setting /></el-icon>Settings
+        </el-menu-item>
       </el-menu>
       <div class="h-6" />
     </div>
@@ -14,22 +18,24 @@
 <script>
 import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Setting, DataAnalysis } from '@element-plus/icons-vue';
 
 export default {
   name: 'Header',
+  components: { Setting, DataAnalysis },
   setup() {
     const route = useRoute(); // Get the current route
     const router = useRouter();
-    const activeIndex = ref('settings');
+    const activeIndex = ref('analytics');
 
     // Set the active menu item based on the current route path
     const setActiveMenu = (path) => {
       if (path.includes('/settings')) {
         activeIndex.value = 'settings';
-      } else if (path.includes('/analysis')) {
-        activeIndex.value = 'analysis';
+      } else if (path.includes('/analytics')) {
+        activeIndex.value = 'analytics';
       }else {
-        activeIndex.value = 'settings';
+        activeIndex.value = 'analytics';
       }
     };
 

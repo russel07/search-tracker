@@ -3,7 +3,7 @@
 /**
  * Plugin Name:       Search Tracker
  * Description:       A simple plugin to track search queries.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires at least: 5.2
  * Requires PHP:      7.4
  * Author:            Md. Russel Hussain
@@ -17,7 +17,7 @@ defined('SEARCH_TRACKER_ASSET_ID') || define('SEARCH_TRACKER_ASSET_ID', 'search-
 defined('SEARCH_TRACKER_ASSET_VARS') || define('SEARCH_TRACKER_ASSET_VARS', 'wplms_cleanup_pro');
 
 // Define the plugin constant PLUGIN_VERSION if not already defined.
-defined('SEARCH_TRACKER_VERSION') || define('SEARCH_TRACKER_VERSION', '1.0.3');
+defined('SEARCH_TRACKER_VERSION') || define('SEARCH_TRACKER_VERSION', '1.0.2');
 
 // Define the plugin constant SEARCH_TRACKER_TEXT_DOMAIN if not already defined.
 defined('SEARCH_TRACKER_TEXT_DOMAIN') || define('SEARCH_TRACKER_TEXT_DOMAIN', 'search-tracker');

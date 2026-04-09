@@ -18,7 +18,7 @@ class MenuHandler
             'manage_options', // Capability
             SEARCH_TRACKER_ASSET_ID, // Menu Slug
             [new self(), 'loadView'], // Callback
-            'dashicons-money', // Dashicon
+            'dashicons-buddicons-tracking', // Dashicon
             54
         );
 
